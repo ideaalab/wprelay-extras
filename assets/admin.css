@@ -1,0 +1,17 @@
+.wprelay-extras-wrap .wpre-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.wprelay-extras-wrap .wpre-pending  { background:#fff3cd; color:#856404; }
+.wprelay-extras-wrap .wpre-approved { background:#d4edda; color:#155724; }
+.wprelay-extras-wrap .wpre-success  { background:#d4edda; color:#155724; }
+.wprelay-extras-wrap .wpre-rejected { background:#f8d7da; color:#721c24; }
+.wprelay-extras-wrap .wpre-failed   { background:#f8d7da; color:#721c24; }
+
+.wprelay-extras-wrap .wpre-inline-payout textarea { resize: vertical; }
+.wprelay-extras-wrap .wpre-inline-payout button { margin-top: 4px; }
+.wprelay-extras-wrap .form-table th { width: 200px; }
