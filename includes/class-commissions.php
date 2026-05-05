@@ -8,6 +8,7 @@ use RelayWp\Affiliate\App\Helpers\Functions;
 use RelayWp\Affiliate\App\Services\Database;
 use RelayWp\Affiliate\Core\Models\Affiliate;
 use RelayWp\Affiliate\Core\Models\CommissionEarning;
+use RelayWp\Affiliate\Core\Models\Customer;
 use RelayWp\Affiliate\Core\Models\Member;
 use RelayWp\Affiliate\Core\Models\Order;
 use RelayWp\Affiliate\Core\Models\Program;
@@ -46,15 +47,53 @@ class Commissions
             }
 
             // Si se pasó un WC Order ID, mapear al order interno de WPRelay
-            // La tabla orders usa 'woo_order_id' para el ID de WooCommerce
+            // Si no existe en WPRelay, lo creamos a partir del pedido WC
             $relayOrderId = null;
             if ($wcOrderId) {
                 $relayOrder = Order::query()->where('woo_order_id = %d', [$wcOrderId])->first();
                 if ($relayOrder) {
                     $relayOrderId = $relayOrder->id;
                 } else {
-                    // No bloqueamos: registramos referencia en reason
-                    $reason .= sprintf(' [WC Order #%d]', $wcOrderId);
+                    // Intentar crear el order en WPRelay a partir del pedido WC
+                    $wcOrder = function_exists('wc_get_order') ? wc_get_order($wcOrderId) : null;
+                    if ($wcOrder && $wcOrder instanceof \WC_Order) {
+                        // Buscar o crear el customer en WPRelay
+                        $customerMember = Member::query()
+                            ->where("email = %s", [$wcOrder->get_billing_email()])
+                            ->where("type = %s", ['customer'])
+                            ->first();
+
+                        $customerId = null;
+                        if ($customerMember) {
+                            $customer = Customer::query()
+                                ->where("member_id = %d", [$customerMember->id])
+                                ->where("affiliate_id = %d", [$affiliateId])
+                                ->first();
+                            $customerId = $customer ? $customer->id : null;
+                        }
+
+                        $affiliate = Affiliate::query()->find($affiliateId);
+                        Order::query()->create([
+                            'woo_order_id'           => $wcOrder->get_id(),
+                            'customer_id'            => $customerId,
+                            'affiliate_id'           => $affiliateId,
+                            'program_id'             => $affiliate->program_id ?? $programId,
+                            'currency'               => $wcOrder->get_currency(),
+                            'total_amount'           => $wcOrder->get_total(),
+                            'calculated_total_amount' => $wcOrder->get_total(),
+                            'medium'                 => 'manual',
+                            'ordered_at'             => $wcOrder->get_date_created()
+                                ? $wcOrder->get_date_created()->format('Y-m-d H:i:s')
+                                : Functions::currentUTCTime(),
+                            'order_status'           => $wcOrder->get_status(),
+                            'created_at'             => Functions::currentUTCTime(),
+                            'updated_at'             => Functions::currentUTCTime(),
+                        ]);
+                        $relayOrderId = Order::query()->lastInsertedId();
+                        $reason .= sprintf(' [WC Order #%d - auto-registered]', $wcOrderId);
+                    } else {
+                        $reason .= sprintf(' [WC Order #%d - not found in WC]', $wcOrderId);
+                    }
                 }
             }
 
