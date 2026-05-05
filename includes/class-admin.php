@@ -108,7 +108,7 @@ class Admin
     private static function viewCommissionCreate()
     {
         $affiliates = Helper::getAllAffiliates();
-        $programs = Program::query()->orderBy('title', 'ASC')->get();
+        $programs = Program::query()->select('*')->orderBy('title', 'ASC')->get();
         $defaultCurrency = Functions::getSelectedCurrency();
         include WPRELAY_EXTRAS_PATH . 'views/commission-create.php';
     }
