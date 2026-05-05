@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       WPRelay Extras
  * Description:       Funciones adicionales para WPRelay Pro: pagos manuales y gestión de comisiones (crear, editar, anular).
- * Version:           1.0.1
+ * Version:           1.0.2
  * Requires PHP:      7.3
  * Author:            Custom
  * Text Domain:       wprelay-extras
@@ -12,8 +12,18 @@ defined('ABSPATH') or exit;
 
 define('WPRELAY_EXTRAS_PATH', plugin_dir_path(__FILE__));
 define('WPRELAY_EXTRAS_URL', plugin_dir_url(__FILE__));
-define('WPRELAY_EXTRAS_VERSION', '1.0.1');
+define('WPRELAY_EXTRAS_VERSION', '1.0.2');
 define('WPRELAY_EXTRAS_SLUG', 'wprelay-extras');
+
+// Auto-update desde GitHub
+require_once WPRELAY_EXTRAS_PATH . 'vendor/plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+PucFactory::buildUpdateChecker(
+    'https://github.com/ideaalab/wprelay-extras/',
+    __FILE__,
+    'wprelay-extras'
+);
 
 // Verificar que el plugin base esté activo y cargado
 add_action('plugins_loaded', function () {
