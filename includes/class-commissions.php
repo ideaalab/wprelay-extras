@@ -45,10 +45,11 @@ class Commissions
                 throw new \Exception(__('Estado inválido', 'wprelay-extras'));
             }
 
-            // Si se pasó un WC Order ID, mapear al order interno del plugin
+            // Si se pasó un WC Order ID, mapear al order interno de WPRelay
+            // La tabla orders usa 'woo_order_id' para el ID de WooCommerce
             $relayOrderId = null;
             if ($wcOrderId) {
-                $relayOrder = Order::query()->where('order_id = %d', [$wcOrderId])->first();
+                $relayOrder = Order::query()->where('woo_order_id = %d', [$wcOrderId])->first();
                 if ($relayOrder) {
                     $relayOrderId = $relayOrder->id;
                 } else {
